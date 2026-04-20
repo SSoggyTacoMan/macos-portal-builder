@@ -45,7 +45,7 @@ ASSET_NAME="Source-game-builder-tool-macos.zip"
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET_NAME"
 
 printf "${BLUE}==>${NC} Downloading $ASSET_NAME...\n"
-curl -L "$DOWNLOAD_URL" -o "$INSTALL_DIR/$ASSET_NAME"
+curl -fsSL "$DOWNLOAD_URL" -o "$INSTALL_DIR/$ASSET_NAME"
 
 printf "${BLUE}==>${NC} Unzipping...\n"
 unzip -q -o "$INSTALL_DIR/$ASSET_NAME" -d "$INSTALL_DIR"
