@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -124,7 +125,7 @@ func validateGameName(gameName string) bool {
 	}
 }
 
-func build() {
+func build() bool {
 	logger.debugMsg("starting build process for game: " + Config.GameToBuild)
 
 	logger.infoMsg("Cloning the repo....")
@@ -154,7 +155,7 @@ func build() {
 					logger.errorMsg("Install failed again!!!!! I give up. Please open an issue with the log output so I can try to fix this.")
 					cleanupTempRepo()
 					logger.errorMsg("Open a issue!!!!")
-					os.Exit(1)
+					return false
 				}
 			}
 		}
@@ -173,7 +174,7 @@ func build() {
 	if !execSafe("cd " + Config.tempRepoDir + " && python3 waf install --destdir=" + shellQuote(Config.tempRepoDir+"/installingthismf")) {
 		logger.errorMsg("Failed to install build artifacts to temporary directory")
 		cleanupTempRepo()
-		os.Exit(1)
+		return false
 	}
 
 	logger.successMsg("done installing the game!")
@@ -181,14 +182,14 @@ func build() {
 	if Config.dryRun {
 		logger.warnMsg("Dry run enabled, skipping installation to game folder.")
 		cleanupTempRepo()
-		return
+		return true
 	}
 
 	gameDir := gameNameToDir(Config.GameToBuild)
 	if err := os.MkdirAll(gameDir, 0755); err != nil {
 		logger.errorMsg("Failed to create game directory: " + err.Error())
 		cleanupTempRepo()
-		os.Exit(1)
+		return false
 	}
 
 	logger.infoMsg("copying files to the game folder...")
@@ -203,11 +204,12 @@ func build() {
 	if !execSafe(copyCmd) {
 		logger.errorMsg("Failed while copying files into game directory")
 		cleanupTempRepo()
-		os.Exit(1)
+		return false
 	}
 
 	logger.successMsg("done copying files to the game folder!")
 	cleanupTempRepo()
+	return true
 }
 
 func main() {
@@ -258,5 +260,63 @@ func main() {
 
 	}
 
-	build()
+	success := build()
+
+	if success && !Config.dryRun {
+		logger.infoMsg("The game has been successfully built and installed!")
+		logger.infoMsg("Would you like to delete this builder tool now? (y/n)")
+		var deleteChoice string
+		fmt.Scanln(&deleteChoice)
+		deleteChoice = strings.ToLower(strings.TrimSpace(deleteChoice))
+		if deleteChoice == "y" || deleteChoice == "yes" {
+			selfDelete()
+		}
+	}
+}
+
+func selfDelete() {
+	executable, err := os.Executable()
+	if err != nil {
+		logger.errorMsg("Failed to get executable path: " + err.Error())
+		return
+	}
+
+	// If we are in an app bundle, we might want to delete the whole .app
+	// Path is typically .../Contents/MacOS/binary
+	// We use filepath.Dir to go up from binary -> MacOS -> Contents -> .app
+	if strings.Contains(executable, ".app/Contents/MacOS/") {
+		// Better way to find the .app bundle root:
+		dir := executable
+		for {
+			if strings.HasSuffix(dir, ".app") {
+				break
+			}
+			parent := filepath.Dir(dir)
+			if parent == dir { // root reached
+				break
+			}
+			dir = parent
+		}
+
+		if strings.HasSuffix(dir, ".app") {
+			logger.infoMsg("Deleting app bundle: " + dir)
+			cmd := exec.Command("rm", "-rf", dir)
+			err = cmd.Start()
+			if err != nil {
+				logger.errorMsg("Failed to start deletion command: " + err.Error())
+			}
+			return
+		}
+	}
+
+	// Fallback or non-app binary
+	logger.infoMsg("Deleting executable: " + executable)
+	// On Unix we can just remove it
+	err = os.Remove(executable)
+	if err != nil {
+		logger.errorMsg("Failed to delete executable: " + err.Error())
+		// Fallback to rm just in case
+		exec.Command("rm", executable).Start()
+	}
+	logger.successMsg("Cleanup initiated. Goodbye!")
 }

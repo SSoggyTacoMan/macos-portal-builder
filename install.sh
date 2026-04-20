@@ -38,15 +38,9 @@ fi
 
 printf "${BLUE}==>${NC} Found version: ${GREEN}$TAG${NC}\n"
 
-# Architecture detection
-ARCH=$(uname -m)
-if [ "$ARCH" = "arm64" ]; then
-    # In a real scenario, you'd have specific binaries for arm64 and amd64, or a universal one.
-    # For now, let's assume there's a zip containing the app bundle as per README.
-    ASSET_NAME="Source-game-builder-tool-macos.zip"
-else
-    ASSET_NAME="Source-game-builder-tool-macos.zip"
-fi
+# In a real scenario, you'd have specific binaries for arm64 and amd64, or a universal one.
+# For now, let's assume there's a zip containing the app bundle as per README.
+ASSET_NAME="Source-game-builder-tool-macos.zip"
 
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET_NAME"
 
@@ -55,6 +49,9 @@ curl -L "$DOWNLOAD_URL" -o "$INSTALL_DIR/$ASSET_NAME"
 
 printf "${BLUE}==>${NC} Unzipping...\n"
 unzip -q -o "$INSTALL_DIR/$ASSET_NAME" -d "$INSTALL_DIR"
+
+# Clean up zip
+rm "$INSTALL_DIR/$ASSET_NAME"
 
 # Path to the binary inside the app bundle
 BINARY_PATH="$INSTALL_DIR/Source-game-builder-tool-macos.app/Contents/MacOS/source-game-builder-tool"
@@ -71,6 +68,21 @@ if [ -f "$BINARY_PATH" ]; then
 
     # Run the binary
     "$BINARY_PATH" "$@"
+
+    # After the tool runs, it might have deleted itself (if it was the binary).
+    # However, since it's in an app bundle inside $INSTALL_DIR, let's see if it's still there.
+
+    if [ -d "$INSTALL_DIR" ]; then
+        # If the app bundle is gone, let's remove the whole install dir if it's empty
+        # or just notify the user.
+        if [ ! -f "$BINARY_PATH" ]; then
+            rm -rf "$INSTALL_DIR"
+            printf "\n${GREEN}==>${NC} Cleanup complete. Tool and temporary files removed.\n"
+        else
+            printf "\n${BLUE}==>${NC} Installation process finished.\n"
+            printf "${BLUE}==>${NC} You can find the builder at: $INSTALL_DIR\n"
+        fi
+    fi
 else
     printf "${RED}Error:${NC} Could not find the executable binary in the downloaded package.\n"
     exit 1
