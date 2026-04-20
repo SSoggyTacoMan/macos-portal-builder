@@ -3,7 +3,7 @@
 # macOS Source Builder Oneliner Installer
 # This script downloads the latest release of the macOS Source Builder and runs it.
 
-set -e
+set -euo pipefail
 
 # Repository information
 REPO="SSoggyTacoMan/macos-portal-builder"
