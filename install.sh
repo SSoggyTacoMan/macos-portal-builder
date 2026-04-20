@@ -28,7 +28,7 @@ fi
 mkdir -p "$INSTALL_DIR"
 
 printf "${BLUE}==>${NC} Fetching latest release information...\n"
-RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
+RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
 TAG=$(echo "$RELEASE_JSON" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$TAG" ]; then
