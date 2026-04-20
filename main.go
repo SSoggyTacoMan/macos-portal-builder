@@ -21,7 +21,7 @@ type ConfigType struct {
 }
 
 var Config = ConfigType{
-	GameToBuild: "portal",
+	GameToBuild: "",
 	skipCleanup: false,
 	dryRun:      false,
 	skipBuild:   false,
@@ -30,7 +30,7 @@ var Config = ConfigType{
 	repoUrl:     "https://github.com/nillerusr/source-engine",
 }
 
-const ARE_WE_BUILDING_TO_A_APP = true
+var ARE_WE_BUILDING_TO_A_APP = true
 
 // logging shit
 
@@ -213,7 +213,7 @@ func build() {
 func main() {
 
 	repoUrlInput := flag.String("url", "https://github.com/nillerusr/source-engine", "The url of the modified source engine repo.")
-	gameBuildInput := flag.String("game", "portal", "The game to build. Options are: portal and hl2 I can't test hl2 (I don't have it) but it should work, if it doesn't please open an issue.")
+	gameBuildInput := flag.String("game", "", "The game to build. Options are: portal and hl2 I can't test hl2 (I don't have it) but it should work, if it doesn't please open an issue.")
 	loggerlvlInput := flag.Int("log-level", 2, "0 = only error, 1 = error + warn, 2 = info, success, warn and error, 3 everything")
 	testStuff := flag.Bool("testing", false, "Overwrite the config with the one for testing and do some other stuff")
 	skipCleanupInput := flag.Bool("skip-cleanup", false, "Whether to skip the cleanup process (deleting the temp repo folder)")
@@ -230,12 +230,15 @@ func main() {
 	Config.tempRepoDir = *tempRepoDirInput
 	Config.showCommandOutput = logLevel >= 3
 
-	if ARE_WE_BUILDING_TO_A_APP {
-		logger.infoMsg("Since you are running this via a app bundle, what game do you want to build? (portal/hl2)")
+	// If game is not provided via flags and we are in app mode (or just want interactive), ask for it
+	if Config.GameToBuild == "" {
+		logger.infoMsg("What game do you want to build? (portal/hl2)")
 		var userInput string
 		fmt.Scanln(&userInput)
 		Config.GameToBuild = normalizeGameName(userInput)
-		logger.infoMsg("Good choice! Building " + Config.GameToBuild + " now!")
+		if Config.GameToBuild != "" {
+			logger.infoMsg("Good choice! Building " + Config.GameToBuild + " now!")
+		}
 	}
 
 	if !validateGameName(Config.GameToBuild) {
