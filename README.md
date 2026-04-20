@@ -22,6 +22,16 @@ Valve has not updated the official versions of hl2 or portal to run on 64 bit ma
 
 ## How to use
 
+### Oneliner (Recommended)
+
+Open your terminal and run:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/SSoggyTacoMan/macos-portal-builder/main/install.sh)"
+```
+
+### Manual
+
 1. download the steam beta or legacy version of the game you want to build
 2. download the app from the releases tab, unzip and run it.
 3. enter the name of the game you want to build (portal or hl2)
