@@ -212,62 +212,11 @@ def CLI():
 
 
 def build():
-    # print(f"Building {buildConfig.gameToBuild.value} with the following configuration:")
-    # print(buildConfig.__dict__)
-    # return
     logger.debug(f"Starting build process for game: {buildConfig.gameToBuild.value}")
 
     logger.info("Cloning repository...")
     clone_repo()
     logger.success("done cloning repository")
-
-    # logger.info("Installing dependencies...")
-    # logger.debug("Using Homebrew to install dependencies. This may take a while...")
-    # exec(
-    #     "brew install sdl2 freetype2 fontconfig pkg-config opus jpeg jpeg-turbo libpng libedit"
-    # )
-    # logger.debug("Installing Xcode Command Line Tools. This may take a while...")
-    # exec("xcode-select --install")
-    # logger.success("done installing dependencies!")
-
-    # logger.info("Configureing build script...")
-    # try1 = exec(
-    #     f"cd {buildConfig.tempRepoDir} && python3 waf configure -T release --prefix='' --build-games={buildConfig.gameToBuild.value}"
-    # )
-    # if try1 != 0:
-    #     logger.error(
-    #         "Basic install failed! this is not uncommon, trying again with different clang"
-    #     )
-    #     try2 = exec(
-    #         f"cd {buildConfig.tempRepoDir} && export CC=/usr/bin/clang && export CXX=/usr/bin/clang++ && python3 waf configure -T release --prefix='' --build-games={buildConfig.gameToBuild.value}"
-    #     )
-    #     if try2 != 0:
-    #         logger.error(
-    #             "Install failed again! I do not experience this on my machine, so I am doing random fixes from reddit now."
-    #         )
-    #         try3 = exec(
-    #             f"cd {buildConfig.tempRepoDir} && export CC=/usr/bin/clang && export CXX=/usr/bin/clang++ && arch -arm64 python3 waf configure -T release --prefix='' --build-games={buildConfig.gameToBuild.value}"
-    #         )
-    #         if try3 != 0:
-    #             logger.error(
-    #                 "Install failed again!!!! Oke so what if the first fix broke the second fix so lets try the second fix without the first fix."
-    #             )
-    #             try4 = exec(
-    #                 f"cd {buildConfig.tempRepoDir} && arch -arm64 python3 waf configure -T release --prefix='' --build-games={buildConfig.gameToBuild.value}"
-    #             )
-    #             if try4 != 0:
-    #                 logger.error(
-    #                     "Install failed again!!!!! I give up. Please open an issue with the log output so I can try to fix this."
-    #                 )
-    #                 if not buildConfig.skipCleanup:
-    #                     logger.info("Cleaning up temporary repository directory...")
-    #                     cleanup()
-    #                     logger.success(
-    #                         "done cleaning up temporary repository directory!"
-    #                     )
-    #                 logger.error("Open a issue!!!!")
-    #                 sys.exit(1)
-    # logger.success("done configuring build script!")
 
     if not buildConfig.skipBuild:
         logger.info("Building the game...")
